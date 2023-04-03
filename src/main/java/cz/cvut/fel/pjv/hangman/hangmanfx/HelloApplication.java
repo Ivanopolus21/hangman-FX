@@ -6,6 +6,7 @@ import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -55,7 +56,24 @@ public class HelloApplication extends Application {
                 @Override
                 public void handle(ActionEvent actionEvent) {
                     letterButton.setDisable(true);
-                    //  TODO!!!!
+                    if (!updateGuessedWord(c)){
+                        missCount++;
+                        updateImageLabel();
+                        if (missCount >= 6){
+                            Alert loseDialog = new Alert(Alert.AlertType.INFORMATION);
+                            loseDialog.setTitle("Fail!");
+                            loseDialog.setContentText("You lost!");
+                            loseDialog.show();
+                        }
+                    } else {
+                        guessedWordLabel.setText(guessedWord);
+                        if (guessedWord.equals(hiddenWord)){
+                            Alert winDialog = new Alert(Alert.AlertType.INFORMATION);
+                            winDialog.setTitle("Success!");
+                            winDialog.setContentText("You won");
+                            winDialog.showAndWait();
+                        }
+                    }
                 }
             });
             bottomPane.getChildren().add(letterButton);
@@ -71,6 +89,7 @@ public class HelloApplication extends Application {
     private void createHiddenWord(){
         hiddenWord = HIDDEN_WORDS[new Random().nextInt(HIDDEN_WORDS.length)];
     }
+
     private void updateImageLabel() {
         try {
             Image image = new Image("hangman_" + missCount + ".png");
@@ -81,6 +100,21 @@ public class HelloApplication extends Application {
     }
     private void initGuessedWord(){
         guessedWord = "_".repeat(hiddenWord.length());
+    }
+
+    private boolean updateGuessedWord(char c){
+        String newGuessedWord = new String();
+        boolean rightChar = false;
+        for (int i = 0; i < hiddenWord.length(); i++){
+            if (hiddenWord.charAt(i) == c){
+                newGuessedWord += c;
+                rightChar = true;
+            } else {
+                newGuessedWord += guessedWord.charAt(i);
+            }
+        }
+        guessedWord = newGuessedWord;
+        return rightChar;
     }
     public static void main(String[] args) {
         launch();
