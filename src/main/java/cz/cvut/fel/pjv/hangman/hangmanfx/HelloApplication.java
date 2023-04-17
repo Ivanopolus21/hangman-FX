@@ -19,55 +19,43 @@ import java.util.EventListener;
 import java.util.Random;
 
 public class HelloApplication extends Application {
-    private final String LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private final String[] HIDDEN_WORDS = {
-            "GHOST", "FLOWER", "BANANA", "SNOWFLAKE", "BOOK", "SNAKE", "LIGHT",
-            "TREE", "LIPS", "APPLE", "SLIDE", "SOCKS", "SMILE", "SWING", "COAT",
-            "SHOE", "WATER", "HEART", "OCEAN", "KITE", "MOUTH", "MILK", "DUCK",
-            "EYES", "SKATEBOARD", "BIRD", "APPLE", "PERSON", "GIRL", "MOUSE",
-            "BALL", "HOUSE", "STAR", "NOSE", "WHALE", "JACKET", "SHIRT", "HIPPO",
-            "BEACH", "FACE", "COOKIE", "CHEESE", "DRUM", "CIRCLE", "SPOON", "WORM"
-    };
-    private final int MAX_MISS = 6;
+    private Model model = new Model();
 
     private ImageView hangmanImage = new ImageView();
-    private int missCount = 0;
-    private String hiddenWord;
-    private String guessedWord;
+
     @Override
     public void start(Stage stage) throws IOException {
-        createHiddenWord();
+        model.createHiddenWord(new RandomWordSource());
         //Upper
         updateImageLabel();
         Pane upperPane = new BorderPane(hangmanImage);
         upperPane.setPadding(new Insets(15));
 //        upperPane.setStyle("-fx-background-color: 'green';");
         //Middle
-        initGuessedWord();
-        Label guessedWordLabel = new Label(guessedWord);
+        Model.initGuessedWord();
+        Label guessedWordLabel = new Label(model.getGuessedWord());
         guessedWordLabel.setStyle("-fx-font-size: 50");
         Pane middlePane = new BorderPane(guessedWordLabel);
 //        middlePane.setStyle("-fx-background-color: 'cyan';");
         //Bottom
         Pane bottomPane = new FlowPane();
-        for (char c : LETTERS.toCharArray()){
+        for (char c : Model.LETTERS.toCharArray()){
             Button letterButton = new Button(String.valueOf(c));
             letterButton.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent actionEvent) {
                     letterButton.setDisable(true);
-                    if (!updateGuessedWord(c)){
-                        missCount++;
+                    if (!model.updateGuessedWord(c)){
                         updateImageLabel();
-                        if (missCount >= 6){
+                        if (model.isLost()){
                             Alert loseDialog = new Alert(Alert.AlertType.INFORMATION);
                             loseDialog.setTitle("Fail!");
                             loseDialog.setContentText("You lost!");
                             loseDialog.show();
                         }
                     } else {
-                        guessedWordLabel.setText(guessedWord);
-                        if (guessedWord.equals(hiddenWord)){
+                        guessedWordLabel.setText(model.getGuessedWord());
+                        if (model.getGuessedWord().equals(model.getHiddenWord())){
                             Alert winDialog = new Alert(Alert.AlertType.INFORMATION);
                             winDialog.setTitle("Success!");
                             winDialog.setContentText("You won");
@@ -86,36 +74,17 @@ public class HelloApplication extends Application {
         stage.setScene(scene);
         stage.show();
     }
-    private void createHiddenWord(){
-        hiddenWord = HIDDEN_WORDS[new Random().nextInt(HIDDEN_WORDS.length)];
-    }
 
     private void updateImageLabel() {
         try {
-            Image image = new Image("hangman_" + missCount + ".png");
+            Image image = new Image("hangman_" + model.getMissCount() + ".png");
             hangmanImage.setImage(image);
         } catch (IllegalArgumentException ex) {
             System.err.println("Can't load resource: " + ex.getMessage());
         }
     }
-    private void initGuessedWord(){
-        guessedWord = "_".repeat(hiddenWord.length());
-    }
 
-    private boolean updateGuessedWord(char c){
-        String newGuessedWord = new String();
-        boolean rightChar = false;
-        for (int i = 0; i < hiddenWord.length(); i++){
-            if (hiddenWord.charAt(i) == c){
-                newGuessedWord += c;
-                rightChar = true;
-            } else {
-                newGuessedWord += guessedWord.charAt(i);
-            }
-        }
-        guessedWord = newGuessedWord;
-        return rightChar;
-    }
+
     public static void main(String[] args) {
         launch();
     }
